@@ -1,0 +1,605 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8"/>
+<meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+<title>Masan Dice</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Cinzel:wght@500;700&family=EB+Garamond:ital,wght@0,400;0,600;1,400&display=swap" rel="stylesheet">
+<style>
+  :root {
+    --bg:       #1a130c;
+    --panel:    #241a10;
+    --panel-2:  #2d2215;
+    --edge:     #3a2a18;
+    --ink:      #e8d9b8;
+    --ink-dim:  #a89878;
+    --amber:    #d9a441;
+    --amber-br: #e8b565;
+    --bronze:   #8a5a22;
+    --rust:     #b83c2e;
+    --ember:    #c94a3d;
+    --miss:     #5a4a36;
+  }
+  * { box-sizing: border-box; }
+  html, body {
+    margin: 0; padding: 0;
+    background: var(--bg);
+    color: var(--ink);
+    font-family: "EB Garamond", Palatino, Georgia, serif;
+    font-size: 15px;
+    line-height: 1.35;
+    height: 100%;
+    overflow-x: hidden;
+  }
+  body {
+    background:
+      radial-gradient(ellipse 80% 40% at 50% 0%, rgba(217,164,65,0.06) 0%, transparent 70%),
+      radial-gradient(ellipse 60% 40% at 50% 100%, rgba(184,60,46,0.04) 0%, transparent 70%),
+      var(--bg);
+    display: flex; flex-direction: column;
+    min-height: 100vh;
+  }
+  header {
+    padding: 10px 14px 8px;
+    border-bottom: 1px solid var(--edge);
+    display: flex; align-items: center; gap: 10px;
+  }
+  header h1 {
+    font-family: "Cinzel", serif;
+    font-weight: 700;
+    letter-spacing: 0.08em;
+    font-size: 14px;
+    margin: 0;
+    color: var(--amber-br);
+    text-transform: uppercase;
+    flex: 1;
+  }
+  .status {
+    font-size: 11px;
+    color: var(--ink-dim);
+    font-style: italic;
+  }
+  .status.live { color: var(--amber); }
+  .status.dev  { color: var(--rust); }
+
+  main { flex: 1; padding: 12px 14px; display: flex; flex-direction: column; gap: 12px; }
+
+  /* --- Organ selector --- */
+  .organs {
+    display: grid;
+    grid-template-columns: repeat(4, 1fr);
+    gap: 4px;
+  }
+  .organ {
+    background: var(--panel);
+    border: 1px solid var(--edge);
+    color: var(--ink-dim);
+    font-family: "Cinzel", serif;
+    font-weight: 500;
+    letter-spacing: 0.05em;
+    text-transform: uppercase;
+    font-size: 10px;
+    padding: 8px 4px;
+    cursor: pointer;
+    transition: all 120ms ease;
+    border-radius: 2px;
+  }
+  .organ:hover { color: var(--ink); border-color: var(--bronze); }
+  .organ.active {
+    background: linear-gradient(180deg, var(--amber) 0%, var(--bronze) 100%);
+    color: #1a130c;
+    border-color: var(--amber-br);
+    box-shadow: 0 0 12px rgba(217,164,65,0.35);
+  }
+
+  /* --- Number controls --- */
+  .controls {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 10px;
+  }
+  .ctrl {
+    background: var(--panel);
+    border: 1px solid var(--edge);
+    padding: 8px 10px;
+    border-radius: 2px;
+  }
+  .ctrl label {
+    display: block;
+    font-family: "Cinzel", serif;
+    font-size: 9px;
+    letter-spacing: 0.1em;
+    text-transform: uppercase;
+    color: var(--ink-dim);
+    margin-bottom: 4px;
+  }
+  .stepper {
+    display: flex; align-items: center; gap: 6px;
+  }
+  .stepper button {
+    background: var(--panel-2);
+    border: 1px solid var(--edge);
+    color: var(--amber-br);
+    width: 24px; height: 24px;
+    font-size: 16px; line-height: 1;
+    cursor: pointer;
+    border-radius: 2px;
+    font-family: "Cinzel", serif;
+  }
+  .stepper button:hover { background: var(--bronze); color: #1a130c; }
+  .stepper .val {
+    flex: 1;
+    text-align: center;
+    font-family: "Cinzel", serif;
+    font-weight: 700;
+    font-size: 18px;
+    color: var(--amber-br);
+  }
+
+  /* --- Roll button --- */
+  .roll-btn {
+    background: linear-gradient(180deg, var(--amber) 0%, var(--bronze) 100%);
+    color: #1a130c;
+    border: 1px solid var(--amber-br);
+    font-family: "Cinzel", serif;
+    font-weight: 700;
+    letter-spacing: 0.15em;
+    text-transform: uppercase;
+    font-size: 13px;
+    padding: 11px;
+    cursor: pointer;
+    border-radius: 2px;
+    box-shadow: 0 2px 12px rgba(217,164,65,0.25), inset 0 1px 0 rgba(255,255,255,0.2);
+    transition: transform 80ms ease, box-shadow 120ms ease;
+  }
+  .roll-btn:hover  { box-shadow: 0 2px 18px rgba(217,164,65,0.45), inset 0 1px 0 rgba(255,255,255,0.25); }
+  .roll-btn:active { transform: translateY(1px); }
+  .roll-btn.push {
+    background: linear-gradient(180deg, var(--ember) 0%, #7a2618 100%);
+    border-color: var(--ember);
+    color: var(--ink);
+    box-shadow: 0 2px 12px rgba(201,74,61,0.3);
+  }
+  .roll-btn:disabled { opacity: 0.4; cursor: not-allowed; }
+
+  /* --- Result panel --- */
+  .result {
+    background: var(--panel);
+    border: 1px solid var(--edge);
+    border-radius: 2px;
+    padding: 10px 12px;
+  }
+  .result.hidden { display: none; }
+  .result-header {
+    font-family: "Cinzel", serif;
+    font-size: 10px;
+    letter-spacing: 0.12em;
+    text-transform: uppercase;
+    color: var(--ink-dim);
+    margin-bottom: 8px;
+    display: flex; justify-content: space-between;
+  }
+  .dice-row {
+    display: flex; flex-wrap: wrap; gap: 6px;
+    margin-bottom: 10px;
+  }
+  .die {
+    width: 34px; height: 34px;
+    position: relative;
+    display: flex; align-items: center; justify-content: center;
+    font-family: "Cinzel", serif;
+    font-weight: 700;
+    font-size: 15px;
+    transform: rotate(0deg);
+    transition: transform 200ms ease;
+  }
+  .die::before {
+    content: "";
+    position: absolute; inset: 0;
+    background: var(--miss);
+    border: 1.5px solid var(--edge);
+    transform: rotate(45deg);
+    border-radius: 3px;
+    z-index: 0;
+  }
+  .die .n { position: relative; z-index: 1; color: var(--ink-dim); }
+  .die.hit::before {
+    background: linear-gradient(135deg, var(--amber-br) 0%, var(--bronze) 100%);
+    border-color: var(--amber-br);
+    box-shadow: 0 0 10px rgba(217,164,65,0.5);
+  }
+  .die.hit .n { color: #1a130c; }
+  .die.one::before {
+    background: linear-gradient(135deg, var(--rust) 0%, #5a1810 100%);
+    border-color: var(--rust);
+  }
+  .die.one .n { color: var(--ink); }
+  .die.stale { opacity: 0.35; }
+  .die.stale::after {
+    content: "×";
+    position: absolute;
+    z-index: 2;
+    font-size: 22px;
+    color: var(--rust);
+    font-weight: 700;
+  }
+  .summary {
+    font-family: "Cinzel", serif;
+    font-size: 12px;
+    letter-spacing: 0.08em;
+    text-transform: uppercase;
+    padding: 6px 0;
+    border-top: 1px solid var(--edge);
+    margin-top: 4px;
+    display: flex; justify-content: space-between; align-items: center;
+  }
+  .summary .outcome.success { color: var(--amber-br); }
+  .summary .outcome.failure { color: var(--ink-dim); }
+  .summary .outcome.botch   { color: var(--ember); }
+  .summary .mos { font-size: 11px; color: var(--ink-dim); }
+
+  /* --- Roll log --- */
+  .log-section { flex: 1; min-height: 0; display: flex; flex-direction: column; }
+  .log-header {
+    font-family: "Cinzel", serif;
+    font-size: 10px;
+    letter-spacing: 0.12em;
+    text-transform: uppercase;
+    color: var(--ink-dim);
+    padding: 6px 0;
+    border-bottom: 1px solid var(--edge);
+    margin-bottom: 6px;
+  }
+  .log {
+    flex: 1; overflow-y: auto;
+    display: flex; flex-direction: column;
+    gap: 4px;
+    max-height: 200px;
+  }
+  .log::-webkit-scrollbar { width: 6px; }
+  .log::-webkit-scrollbar-track { background: var(--panel); }
+  .log::-webkit-scrollbar-thumb { background: var(--bronze); border-radius: 3px; }
+  .log-entry {
+    font-size: 13px;
+    padding: 5px 8px;
+    background: var(--panel);
+    border-left: 2px solid var(--bronze);
+    border-radius: 2px;
+    display: flex; gap: 6px; align-items: baseline;
+    flex-wrap: wrap;
+  }
+  .log-entry.push-entry { border-left-color: var(--ember); }
+  .log-entry .who { font-weight: 600; }
+  .log-entry .organ-tag {
+    font-family: "Cinzel", serif;
+    font-size: 9px;
+    letter-spacing: 0.1em;
+    text-transform: uppercase;
+    color: var(--ink-dim);
+    padding: 1px 5px;
+    border: 1px solid var(--edge);
+    border-radius: 2px;
+  }
+  .log-entry .line { color: var(--ink-dim); flex: 1; font-size: 12px; }
+  .log-entry .hits { color: var(--amber-br); font-weight: 600; }
+  .log-entry .fail { color: var(--ink-dim); }
+  .log-entry .botch-tag { color: var(--ember); font-weight: 600; font-style: italic; }
+  .log-empty {
+    color: var(--ink-dim);
+    font-style: italic;
+    font-size: 12px;
+    text-align: center;
+    padding: 16px;
+  }
+</style>
+</head>
+<body>
+<header>
+  <h1>Masan Dice</h1>
+  <span class="status" id="status">connecting…</span>
+</header>
+
+<main>
+  <div class="organs" id="organs">
+    <button class="organ active" data-organ="Bones">Bones</button>
+    <button class="organ" data-organ="Sinew">Sinew</button>
+    <button class="organ" data-organ="Nerves">Nerves</button>
+    <button class="organ" data-organ="Heart">Heart</button>
+  </div>
+
+  <div class="controls">
+    <div class="ctrl">
+      <label>Pool (d8)</label>
+      <div class="stepper">
+        <button data-step="pool" data-dir="-1">−</button>
+        <span class="val" id="pool-val">4</span>
+        <button data-step="pool" data-dir="1">+</button>
+      </div>
+    </div>
+    <div class="ctrl">
+      <label>Difficulty</label>
+      <div class="stepper">
+        <button data-step="diff" data-dir="-1">−</button>
+        <span class="val" id="diff-val">2</span>
+        <button data-step="diff" data-dir="1">+</button>
+      </div>
+    </div>
+  </div>
+
+  <button class="roll-btn" id="roll-btn">Roll</button>
+
+  <div class="result hidden" id="result">
+    <div class="result-header">
+      <span id="result-label">Roll</span>
+      <span id="result-meta"></span>
+    </div>
+    <div class="dice-row" id="dice-row"></div>
+    <div class="summary">
+      <span class="outcome" id="outcome">—</span>
+      <span class="mos" id="mos"></span>
+    </div>
+    <button class="roll-btn push hidden" id="push-btn" style="margin-top:8px;">Push · Reroll non-hits</button>
+  </div>
+
+  <section class="log-section">
+    <div class="log-header">Table Log</div>
+    <div class="log" id="log">
+      <div class="log-empty">No rolls yet.</div>
+    </div>
+  </section>
+</main>
+
+<script type="module">
+  // -------- OBR SDK (via esm.sh, no build step) --------
+  let OBR = null;
+  let obrAvailable = false;
+  let player = { id: "local", name: "You", color: "#d9a441", role: "PLAYER" };
+
+  const CHANNEL = "com.masan.dice/roll";
+  const status = document.getElementById("status");
+
+  try {
+    const mod = await import("https://esm.sh/@owlbear-rodeo/sdk@3.1.0");
+    OBR = mod.default;
+    obrAvailable = OBR.isAvailable;
+  } catch (err) {
+    console.warn("OBR SDK load failed — running in standalone dev mode.", err);
+  }
+
+  if (obrAvailable) {
+    OBR.onReady(async () => {
+      const [name, color, role, id] = await Promise.all([
+        OBR.player.getName(),
+        OBR.player.getColor(),
+        OBR.player.getRole(),
+        OBR.player.getId(),
+      ]);
+      player = { id, name, color, role };
+      status.textContent = `${name} · ${role}`;
+      status.classList.add("live");
+
+      OBR.broadcast.onMessage(CHANNEL, (evt) => {
+        appendLog(evt.data);
+      });
+    });
+  } else {
+    status.textContent = "standalone · broadcast disabled";
+    status.classList.add("dev");
+  }
+
+  // -------- State --------
+  const state = {
+    organ: "Bones",
+    pool: 4,
+    difficulty: 2,
+    current: null, // last roll object for push
+  };
+
+  // -------- Dice logic --------
+  function rollN(n) {
+    const arr = new Array(n);
+    for (let i = 0; i < n; i++) arr[i] = 1 + Math.floor(Math.random() * 8);
+    return arr;
+  }
+
+  function analyze(dice, difficulty) {
+    let hits = 0, ones = 0;
+    for (const d of dice) { if (d >= 6) hits++; if (d === 1) ones++; }
+    const botch = ones > hits;           // botch: ones strictly exceed hits
+    const success = !botch && hits >= difficulty;
+    const mos = hits - difficulty;       // negative = margin of failure
+    return { hits, ones, botch, success, mos };
+  }
+
+  // -------- UI handlers --------
+  document.getElementById("organs").addEventListener("click", (e) => {
+    const btn = e.target.closest(".organ");
+    if (!btn) return;
+    document.querySelectorAll(".organ").forEach(b => b.classList.remove("active"));
+    btn.classList.add("active");
+    state.organ = btn.dataset.organ;
+  });
+
+  document.querySelectorAll("[data-step]").forEach(btn => {
+    btn.addEventListener("click", () => {
+      const key = btn.dataset.step;
+      const dir = parseInt(btn.dataset.dir, 10);
+      if (key === "pool") {
+        state.pool = Math.max(1, Math.min(10, state.pool + dir));
+        document.getElementById("pool-val").textContent = state.pool;
+      } else if (key === "diff") {
+        state.difficulty = Math.max(0, Math.min(6, state.difficulty + dir));
+        document.getElementById("diff-val").textContent = state.difficulty;
+      }
+    });
+  });
+
+  document.getElementById("roll-btn").addEventListener("click", doRoll);
+  document.getElementById("push-btn").addEventListener("click", doPush);
+
+  function doRoll() {
+    const dice = rollN(state.pool);
+    const result = analyze(dice, state.difficulty);
+    const roll = {
+      id: crypto.randomUUID(),
+      type: "roll",
+      player: { id: player.id, name: player.name, color: player.color, role: player.role },
+      organ: state.organ,
+      pool: state.pool,
+      difficulty: state.difficulty,
+      dice,
+      stale: [],          // indexes rerolled by previous push (empty on initial)
+      ...result,
+      ts: Date.now(),
+    };
+    state.current = roll;
+    renderResult(roll);
+    broadcast(roll);
+  }
+
+  function doPush() {
+    if (!state.current) return;
+    const prev = state.current;
+    const rerollIdx = [];
+    for (let i = 0; i < prev.dice.length; i++) {
+      if (prev.dice[i] < 6) rerollIdx.push(i);
+    }
+    if (rerollIdx.length === 0) return;
+
+    // new dice: keep hits, reroll the rest. Represent as a fresh array
+    // where stale positions carry the OLD value but are marked stale,
+    // and new rolls are appended as fresh dice.
+    const newDice = prev.dice.slice();            // preserve full history layout
+    const appendedNew = rollN(rerollIdx.length);
+    const stale = rerollIdx.slice();
+    rerollIdx.forEach((idx, k) => {
+      newDice[idx] = appendedNew[k];              // replace in place
+    });
+
+    // Analyze the full new dice array (stale positions now hold fresh values)
+    const result = analyze(newDice, prev.difficulty);
+
+    const pushed = {
+      id: crypto.randomUUID(),
+      type: "push",
+      parentId: prev.id,
+      player: prev.player,
+      organ: prev.organ,
+      pool: prev.pool,
+      difficulty: prev.difficulty,
+      dice: newDice,
+      stale,                 // indexes that were rerolled (for visual striking)
+      rerolled: rerollIdx.length,
+      ...result,
+      ts: Date.now(),
+    };
+    state.current = pushed;
+    renderResult(pushed);
+    broadcast(pushed);
+  }
+
+  function broadcast(roll) {
+    if (obrAvailable && OBR?.isReady) {
+      OBR.broadcast.sendMessage(CHANNEL, roll, { destination: "ALL" });
+    } else {
+      // standalone fallback — log locally so UI still works
+      appendLog(roll);
+    }
+  }
+
+  // -------- Rendering --------
+  function renderResult(roll) {
+    const el = document.getElementById("result");
+    el.classList.remove("hidden");
+    document.getElementById("result-label").textContent =
+      roll.type === "push" ? "After Push" : "Roll";
+    document.getElementById("result-meta").textContent =
+      `${roll.organ} · ${roll.pool}d8 vs D${roll.difficulty}`;
+
+    const row = document.getElementById("dice-row");
+    row.innerHTML = "";
+    roll.dice.forEach((d, i) => {
+      const div = document.createElement("div");
+      div.className = "die";
+      if (d >= 6) div.classList.add("hit");
+      else if (d === 1) div.classList.add("one");
+      // note: "stale" indexes in a push result are the dice that were replaced;
+      // we don't mark the NEW value as stale — we show it fresh.
+      div.innerHTML = `<span class="n">${d}</span>`;
+      row.appendChild(div);
+    });
+
+    const outcome = document.getElementById("outcome");
+    const mosEl = document.getElementById("mos");
+    if (roll.botch) {
+      outcome.textContent = `Botch · ${roll.ones} ones vs ${roll.hits} hits`;
+      outcome.className = "outcome botch";
+    } else if (roll.success) {
+      outcome.textContent = `Success · ${roll.hits} hits`;
+      outcome.className = "outcome success";
+    } else {
+      outcome.textContent = `Failure · ${roll.hits} hits`;
+      outcome.className = "outcome failure";
+    }
+    mosEl.textContent = roll.botch
+      ? ""
+      : (roll.success ? `MoS ${roll.mos}` : `MoF ${-roll.mos}`);
+
+    // Push availability: only if failed (not success, not botch), and has non-hits
+    const pushBtn = document.getElementById("push-btn");
+    const hasNonHits = roll.dice.some(d => d < 6);
+    const canPush = !roll.success && !roll.botch && hasNonHits;
+    pushBtn.classList.toggle("hidden", !canPush);
+    pushBtn.textContent = canPush
+      ? `Push · Reroll ${roll.dice.filter(d => d < 6).length} dice`
+      : "Push · Reroll non-hits";
+  }
+
+  // -------- Log --------
+  const logEl = document.getElementById("log");
+  let logEmpty = true;
+
+  function appendLog(roll) {
+    if (logEmpty) {
+      logEl.innerHTML = "";
+      logEmpty = false;
+    }
+    const entry = document.createElement("div");
+    entry.className = "log-entry" + (roll.type === "push" ? " push-entry" : "");
+    const color = roll.player?.color || "var(--amber)";
+    const name = roll.player?.name || "?";
+    const diceStr = roll.dice.map(d =>
+      d >= 6 ? `<span class="hits">${d}</span>` :
+      d === 1 ? `<span style="color:var(--rust)">${d}</span>` :
+      `<span style="color:var(--miss)">${d}</span>`
+    ).join(" ");
+
+    let outcomeTxt;
+    if (roll.botch) outcomeTxt = `<span class="botch-tag">botch</span>`;
+    else if (roll.success) outcomeTxt = `<span class="hits">${roll.hits}h</span>/D${roll.difficulty} · MoS ${roll.mos}`;
+    else outcomeTxt = `<span class="fail">${roll.hits}h</span>/D${roll.difficulty} · MoF ${-roll.mos}`;
+
+    const prefix = roll.type === "push" ? "↻ " : "";
+    entry.innerHTML = `
+      <span class="who" style="color:${color}">${prefix}${escapeHtml(name)}</span>
+      <span class="organ-tag">${roll.organ}</span>
+      <span class="line">${diceStr}</span>
+      <span>${outcomeTxt}</span>
+    `;
+    // column-reverse: prepend newest
+    logEl.insertBefore(entry, logEl.firstChild);
+
+    // trim to 30
+    while (logEl.children.length > 30) logEl.removeChild(logEl.lastChild);
+  }
+
+  function escapeHtml(s) {
+    return String(s).replace(/[&<>"']/g, c => ({
+      '&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'
+    }[c]));
+  }
+</script>
+</body>
+</html>

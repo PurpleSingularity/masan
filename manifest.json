@@ -1,0 +1,15 @@
+{
+  "name": "Masan Dice",
+  "version": "0.1.0",
+  "manifest_version": 1,
+  "author": "Maksym",
+  "description": "d8 pool roller for the Masan TTRPG. TN 6, Push, shared roll log.",
+  "icon": "icon.svg",
+  "action": {
+    "title": "Masan Dice",
+    "icon": "icon.svg",
+    "popover": "index.html",
+    "height": 640,
+    "width": 380
+  }
+}
