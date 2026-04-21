@@ -1,14 +1,14 @@
 {
   "name": "Masan Dice",
-  "version": "0.1.1",
+  "version": "0.1.2",
   "manifest_version": 1,
   "author": "Maksym",
   "description": "d8 pool roller for the Masan TTRPG. TN 6, Push, shared roll log.",
-  "icon": "https://purplesingularity.github.io/icon.svg",
+  "icon": "https://purplesingularity.github.io/masan/icon.svg",
   "action": {
     "title": "Masan Dice",
-    "icon": "https://purplesingularity.github.io/icon.svg",
-    "popover": "https://purplesingularity.github.io/index.html",
+    "icon": "https://purplesingularity.github.io/masan/icon.svg",
+    "popover": "https://purplesingularity.github.io/masan/index.html",
     "height": 640,
     "width": 380
   }
